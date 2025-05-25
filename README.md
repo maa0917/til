@@ -1,3 +1,38 @@
+# Laravel でCSV出力時に文字コード変換（UTF-8 -> Shift_JIS）
+
+## 概要
+
+レセプト関連のシステムでCSVファイルを出力し、Zipでまとめてダウンロードさせる処理を実装した際、UTF-8でのままだとレセ電でエラーになる問題。
+
+## 背景・発生した問題
+
+- 「JIS X0201/X0208の範囲内（＝Shift_JIS）」のみ許可されている[オンライン又は光ディスク等による請求に係る標準仕様（調剤用）](https://www.ssk.or.jp/seikyushiharai/iryokikan/download/index.files/iryokikan_in_08.pdf)
+- UTF-8で出力したCSVを取り込もうとすると、JIS規格外の文字や文字コード自体でエラーになる
+
+## 対応方法
+
+fputcsvでCSVに書き出す前に、各セルの文字列を[mb_convert_encoding](https://www.php.net/manual/en/function.mb-convert-encoding.php)でShift_JIS（SJIS-win）に変換することで対応
+
+```php
+$fp = fopen('php://temp', 'r+');
+foreach ($rows as $row) {
+    // 各値をSJISに変換してfputcsv
+    $row_sjis = array_map(fn($v) => mb_convert_encoding($v, 'SJIS', 'UTF-8'), $row);
+    fputcsv($fp, $row_sjis);
+}
+rewind($fp);
+$csvString = stream_get_contents($fp);
+fclose($fp);
+
+$zip->addFromString("{$subDirPath}/RECEIPTY.CYO", $csvString);
+```
+
+SJIS、JIS外文字は「?」などに自動で化けるため、規格違反を防げる。
+
+CSVをZip化・Base64エンコードする部分はそのままでOK。
+
+必要なら「?」等に化けた場合の警告やログ出力も検討。
+
 # 応用情報技術者試験 解説：エンディアンとは？（平成23年特別 問11）
 
 ## 問題文
