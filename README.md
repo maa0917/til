@@ -1,3 +1,38 @@
+# Claude から天気APIを呼び出す MCP サーバーを作ってみた
+
+[MCP](https://modelcontextprotocol.io/introduction) を使って天気予報を返すサーバーを Python 実装してみた。
+
+参考にしたのは[公式クイックスタート](https://modelcontextprotocol.io/quickstart/server)ほぼそのまま
+
+作成したリポジトリは[こちら](https://github.com/maa0917/weather-server-python)
+
+## やったこと
+
+- MCP 対応のPython サーバーを構築
+- [National Weather Service (NWS)](https://www.weather.gov/documentation/services-web-api) の API を叩いて
+    - 指定された週の気象警告を返す `get_alerts`
+    - 緯度経度に基づいた天気予報を返す `get_forecast`
+- Claude for Desktop に組み込み、実際に「サクラメントの天気は？」「NYの警報ある？」などと話しかけてレスポンスを確認
+
+## MCPツールの構成
+
+### `get_alerts(state: str)`
+
+2文字の週コードを指定しアクティブな気象警告を一覧で返す
+
+### `get_forecast(latitude: float, longitude: float)`
+
+緯度経度を指定、予報の1〜2日分（最大5件）を整形して返す
+
+Claude はユーザーの自然分から緯度経度を自動で推論して呼び出してくれる。
+
+## ポイント
+
+- MCP は `@mcp.tool()` を使って、Python関数をそのまま Claude から呼び出せるツールにできる
+- `mcp.run(transport="stdio")` で Claude と標準入出力を通じた通信が可能
+- Claude は args や docstring からツールの使い方や型を自動で認識する（プロンプトなしで補完される）
+- Claude は地名→緯度経度のジオコーディングも自前でやってくれる
+
 # MCP(Model context protocol)とは
 
 MCP(Model Context Protocol)は、大規模言語モデル（LLM）に外部からコンテキスト情報を提供するためのプロトコル。
@@ -17,12 +52,14 @@ MCPは以下の３つの構成要素からなる
 
 ## 背景・発生した問題
 
-- 「JIS X0201/X0208の範囲内（＝Shift_JIS）」のみ許可されている[オンライン又は光ディスク等による請求に係る標準仕様（調剤用）](https://www.ssk.or.jp/seikyushiharai/iryokikan/download/index.files/iryokikan_in_08.pdf)
+- 「JIS
+  X0201/X0208の範囲内（＝Shift_JIS）」のみ許可されている[オンライン又は光ディスク等による請求に係る標準仕様（調剤用）](https://www.ssk.or.jp/seikyushiharai/iryokikan/download/index.files/iryokikan_in_08.pdf)
 - UTF-8で出力したCSVを取り込もうとすると、JIS規格外の文字や文字コード自体でエラーになる
 
 ## 対応方法
 
-fputcsvでCSVに書き出す前に、各セルの文字列を[mb_convert_encoding](https://www.php.net/manual/en/function.mb-convert-encoding.php)でShift_JIS（SJIS-win）に変換することで対応
+fputcsvでCSVに書き出す前に、各セルの文字列を[mb_convert_encoding](https://www.php.net/manual/en/function.mb-convert-encoding.php)
+でShift_JIS（SJIS-win）に変換することで対応
 
 ```php
 $fp = fopen('php://temp', 'r+');
@@ -152,14 +189,14 @@ CPUを作った人たちの考え方が違うから。
 
 ```ts
 const buttonVariants = cva<typeof variants>(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-  {
-    variants,
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+    {
+        variants,
+        defaultVariants: {
+            variant: "default",
+            size: "default",
+        },
+    }
 );
 ```
 
