@@ -1,4 +1,4 @@
-# Claude から天気APIを呼び出す MCP サーバーを作ってみた
+# 2025-06-05: Claude から天気APIを呼び出す MCP サーバーを作ってみた
 
 [MCP](https://modelcontextprotocol.io/introduction) を使って天気予報を返すサーバーを Python 実装してみた。
 
