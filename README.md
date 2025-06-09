@@ -1,3 +1,43 @@
+# 2025-06-09: Eloquent の join は SoftDeletes が効かない
+
+## 概要
+
+Laravel の Eloquent では、 SoftDeletes を利用している場合、 `deleted_at` が null 出ないレコードは自動で除外される。
+しかし、join句を使った場合、このグローバルスコープが効かず、論理削除済みのレコードも取得されてしまう。
+
+## 体験談
+
+- prescriptions テーブルから論理削除を考慮してレコードを取得したかった
+- `join()` で `details` テーブルを結合した
+- `details` テーブルに同じ `prescription_id` の論理削除前・後レコードが両方残っていた
+- 結果、1件のはずが重複して2件取得されてしまった
+
+## 原因
+
+- Eloquentのリレーションや `with()` を使った場合は `deleted_at IS NULL` の条件が自動で付与される
+- `join()` はあくまでSQLの `join` で、グローバルスコープ（論理削除を除外するwhere句）が効かない
+- そのため、論理削除済みレコードもjoin結果に含まれる
+
+## 教訓
+
+- Eloquentリレーションや `with()` を使える場合はできるだけそちらを使う
+    - 自動でSoftDeletesの除外が効く
+- やむを得ず `join()` を使う場合は、明示的に `whereNull('deleted_at')` を付与すること
+    - 例: `->whereNull('details.deleted_at')`
+
+```php
+// Eloquentのみ
+$prescriptions = Prescription::with('prescriptionDetail')
+    ->whereIn('id', $ids)
+    ->get();
+
+// joinを使う場合
+$prescriptions = Prescription::join('details', 'prescriptions.id', '=', 'details.prescription_id')
+    ->whereNull('details.deleted_at')
+    ->whereIn('prescriptions.id', $ids)
+    ->get();
+```
+
 # 2025-06-05: Claude から天気APIを呼び出す MCP サーバーを作ってみた
 
 [MCP](https://modelcontextprotocol.io/introduction) を使って天気予報を返すサーバーを Python 実装してみた。
