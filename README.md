@@ -1,3 +1,28 @@
+# 2025/06/13: Claude と MCPサーバを連携させてツールを実行するクライアントを構築した
+
+作成したリポジトリは[こちら](https://github.com/maa0917/mcp-client-python)
+
+## 使ったもの
+
+- [MCP](https://modelcontextprotocol.io/quickstart/client)
+- 以前作成した[weather-server-python](https://github.com/maa0917/weather-server-python)
+- Claude 3.5 Sonnet API
+
+## 処理の全体の流れ
+
+1. ユーザーが質問
+   例: What are the weather alerts in California?
+2. Claude API にリクエストを送信
+   質問と一緒に、MCPサーバが提供しているツール（`get_forecast`, `get_alerts` など）の情報を渡す
+3. Claude がツール仕様を提案(tool_use)
+   例: `get_forecast` を使って、緯度経度を指定して取得すべきと判断
+4. クライアントがMCPサーバにツール実行要求
+   `self.session.call_tool()` を使って `get_forecast` を実行
+5. MCPサーバがレスポンスを返す
+   例: 天気予報のデータが返ってくる
+6. Claude にツール結果を渡して最終返答を生成
+   `tool_result` を渡し、Claude が自然な文章でユーザーへの返答を生成
+
 # 2025-06-09: Eloquent の join は SoftDeletes が効かない
 
 ## 概要
