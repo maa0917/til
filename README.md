@@ -1,4 +1,74 @@
-# 2025/06/13: Claude と MCPサーバを連携させてツールを実行するクライアントを構築した
+# 2025-06-13: 関数型プログラミング
+
+## 関数型プログラミングとは
+
+- データを「別のデータに変換する」ことを中心に考えるプログラミングスタイル
+- 処理の単位は「関数」
+- 副作用のない「純粋関数」が基本
+- 同じ入力に対して常に同じ出力（参照透過性）を返す関数が理想
+- 状態を持たない設計、不変性が重要
+
+## 手続き型 vs 関数型
+
+| 観点   | 手続き型            | 関数型                   |
+|------|-----------------|-----------------------|
+| 基本思想 | 手順・命令を記述        | 入力 -> 出力を関数で記述        |
+| 状態管理 | 変数を更新（可変）       | 不変（変数を再代入しない）         |
+| 処理方法 | ループ（for, while） | 再帰・高階関数（map, fold など） |
+| 副作用  | あり（状態変更、IOなど）   | なしが理想（純粋関数）           |
+
+## 関数の比較
+
+sum 関数の例を手続き型と関数型で比較
+
+### 手続き型(JavaScript)
+
+```javascript
+function sum(arr) {
+    let total = 0;
+    for (let i = 0; i < arr.length; i++) {
+        total += arr[i];
+    }
+    return total;
+}
+```
+
+- 状態を変えながら合計を計算する
+
+### 関数型(Scala)
+
+```scala
+def sum(xs: List[Int]): Int = xs match{
+    case Nil => 0
+    case x :: xs => x + sum(xs)
+}
+```
+
+- 再帰を使い、状態を持たずに合計を返す
+
+## データの「変換」とは
+
+- 関数型では、元のデータを変更せずに新しいデータを生成することを「変換」と捉える
+- 手続き型でも変換はするが、変数の中身を書き換える形が多い（破壊的変更）
+
+## 副作用（side effect）とは
+
+- 関数外部の状態に影響を与える処理
+    - 例： `print()`、ファイル書き込み、DB更新、グローバル変数の変更
+- 関数型では副作用を避け、関数は「値の変換だけ」に集中するのが理想
+
+## 参照透過とは
+
+- ある式を、その評価結果（値）に置き換えてもプログラムの意味が変わらないこと
+- 同じ入力 → 同じ出力を返すことが前提
+- 副作用があると参照透過性が成立しない
+
+## 感想
+
+- 関数型の考え方は「何をするか」に集中していて、処理の安全性やテストの使やすさに強みがある
+- 並列処理や大規模システムの場合には特に役立ちそう
+
+# 2025-06-13: Claude と MCPサーバを連携させてツールを実行するクライアントを構築した
 
 作成したリポジトリは[こちら](https://github.com/maa0917/mcp-client-python)
 
@@ -254,14 +324,14 @@ CPUを作った人たちの考え方が違うから。
 
 ```ts
 const buttonVariants = cva<typeof variants>(
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-    {
-        variants,
-        defaultVariants: {
-            variant: "default",
-            size: "default",
-        },
-    }
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  {
+    variants,
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
 );
 ```
 
