@@ -1,3 +1,40 @@
+# 2025-06-17: テキストファイルの改行コードとEOF、PHP `fputcsv` での制御
+
+テキストファイルにおける改行コードの種類とEOFの概念、PHPの `fputcsv` 関数を使ってこれらを制御。
+
+## 改行コードの種類と可視化
+
+テキストファイルの改行コードは主に以下の3種類がある。
+
+- LF(LineFeed `\n`, `0x0A`) - Unix/Linux系
+- CR(Carriage Return `\r`, `0x0D`) - 古いMac OS
+- CRLF(Carriage Return + Line Feed `\r\n`, `0x0D0A`) - Windows系
+
+## EOFコード（End Of File Code）の概念
+
+EOF は「ファイルの終端」を示す概念で、その表現方法は複数ある。
+
+- `0x1A` - SUB文字
+    - MS-DOS や CP/M など古いシステムで使われ
+- ファイルサイズによる終端
+    - 現代の殆どのファイルシステム（Unix系OS、WindowsのNTFSなど）では、ファイル自身にEOFコードを書き込むことはせず、ファイルシステムが管理するバイトサイズによって終端を判断する。
+- 入力ストリームのシグナル
+    - ターミナルでのユーザー入力の終了を示す `Ctrl+D` （Unix系）や `Ctrl+Z`（Windows）などの操作もEOFを示すOSに入力終了を伝えるためのシグナルである。
+
+## PHPの `fputcsv` 関数と改行コード
+
+- [`fputcsv`](https://www.php.net/manual/ja/function.fputcsv.php) 関数は、CSV形式でデータを書き出す際に、改行コードを自動的に
+  `\n`（LF）として使用する。
+- `fputcsv($fp, $row, ',', '"', '``', "\r\n")` の呼び出しにより、各行の最後に明示的にCRLFが追加されることを確認
+- EOFコード (`0x1A`) の追加
+    - 仕様書でEOFコードが `1A` と定義されている場合、CSVデータ文字列の末尾にこのバイトを追加する
+    - PHP では、文字列に16進数のバイトを追加する際に `"\x1A"` のように記述できる
+- これにより、生成されるCSVファイルは、各業がCRLFで区切られ、ファイル全体の終わりに `0x1A` のEOFコードが付加される
+
+## 注意点
+
+`0x1A` のEOFコードは現代のシステムでは不要な場合がほとんどであり、互換性上の明確な要件がない限り追加しないほうが良い。
+
 # 2025-06-13: 関数型プログラミング
 
 ## 関数型プログラミングとは
@@ -324,14 +361,14 @@ CPUを作った人たちの考え方が違うから。
 
 ```ts
 const buttonVariants = cva<typeof variants>(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
-  {
-    variants,
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
+    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+    {
+        variants,
+        defaultVariants: {
+            variant: "default",
+            size: "default",
+        },
+    }
 );
 ```
 
